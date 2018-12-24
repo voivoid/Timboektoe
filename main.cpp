@@ -94,7 +94,7 @@ int main()
         return schuur | view::transform( []( const auto cost ) { return sale_price - cost; } ) | view::partial_sum;
       } );
 
-  const auto max_sums = schuurs_partial_sums | view::transform( []( const auto schuur_partial_sum ) { return max( schuur_partial_sum ); } );
+  const auto max_sums = schuurs_partial_sums | view::transform( max );
 
   Coro::pull_type numbers_of_flut_coro( [&schuurs_partial_sums, &max_sums]( Coro::push_type& yield ) {
     auto indexed_sums = view::zip( schuurs_partial_sums, max_sums );
