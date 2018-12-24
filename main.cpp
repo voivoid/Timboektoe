@@ -55,15 +55,14 @@ Schuurs parse_schuurs( std::istream& input )
   return schuurs;
 }
 
-using FlutIndices = std::vector<int>;
 using Coro        = boost::coroutines2::coroutine<int>;
 
 template <typename Iter, typename End>
-void find_numbers_of_flut( Iter schuurs_iter, End schuurs_end, Coro::push_type& yield, FlutIndices& indices )
+void find_numbers_of_flut( Iter schuurs_iter, End schuurs_end, Coro::push_type& yield, int indices_sum )
 {
   if ( schuurs_iter == schuurs_end )
   {
-    yield( accumulate( indices, 0 ) );
+    yield( indices_sum );
     return;
   }
 
@@ -72,9 +71,9 @@ void find_numbers_of_flut( Iter schuurs_iter, End schuurs_end, Coro::push_type& 
   {
     if ( sum == max_sum )
     {
-      indices.push_back( index );
-      find_numbers_of_flut( schuurs_iter + 1, schuurs_end, yield, indices );
-      indices.pop_back();
+      indices_sum += index;
+      find_numbers_of_flut( schuurs_iter + 1, schuurs_end, yield, indices_sum );
+      indices_sum -= index;
     }
   }
 }
@@ -98,9 +97,7 @@ int main()
 
   Coro::pull_type numbers_of_flut_coro( [&schuurs_partial_sums, &max_sums]( Coro::push_type& yield ) {
     auto indexed_sums = view::zip( schuurs_partial_sums, max_sums );
-
-    FlutIndices indices;
-    find_numbers_of_flut( indexed_sums.begin(), indexed_sums.end(), yield, indices );
+    find_numbers_of_flut( indexed_sums.begin(), indexed_sums.end(), yield, 0 );
   } );
 
   const FlutCost max_profit           = accumulate( max_sums, FlutCost{ 0 } );
